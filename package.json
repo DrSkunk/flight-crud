@@ -15,14 +15,14 @@
 		"lint": "biome lint .",
 		"format": "biome format --write .",
 		"check": "biome check --write .",
+		"biome:fix": "biome check --write . && biome lint --fix . && biome format --write .",
 		"db:up": "docker compose up -d",
 		"db:down": "docker compose down",
 		"test:docker": "vitest --env-file=.env.test.docker",
 		"prepare": "husky"
 	},
 	"lint-staged": {
-		"*": "biome lint --fix",
-		"*.{js,ts,json,css,md}": "biome format --write"
+		"*.{js,ts,json,css,md}": "npm run biome:fix"
 	},
 	"dependencies": {
 		"bcryptjs": "^2.4.3",
