@@ -7,6 +7,11 @@ import {
 	updateFlight,
 } from "../controllers/flightController.js";
 import { AppError } from "../utils/AppError.js";
+import { validateFlightData } from "../utils/validation.js";
+import {
+	flightValidationRules,
+	flightNumberParamValidationRule,
+} from "../utils/validation.js";
 
 export const flightRoutes = express.Router();
 
@@ -69,10 +74,21 @@ function cancelFlightRoute(req, res, next) {
 		.catch(next);
 }
 
-flightRoutes.route("/").get(getAllFlightsRoute).post(createFlightRoute);
+flightRoutes
+	.route("/")
+	.get(getAllFlightsRoute)
+	.post(flightValidationRules, validateFlightData, createFlightRoute);
 
 flightRoutes
 	.route("/:flightNumber")
-	.get(getFlightRoute)
-	.patch(updateFlightRoute)
-	.delete(cancelFlightRoute);
+	.get(flightNumberParamValidationRule, validateFlightData, getFlightRoute)
+	.patch(
+		[...flightNumberParamValidationRule, ...flightValidationRules],
+		validateFlightData,
+		updateFlightRoute,
+	)
+	.delete(
+		flightNumberParamValidationRule,
+		validateFlightData,
+		cancelFlightRoute,
+	);

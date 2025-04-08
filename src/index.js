@@ -46,9 +46,12 @@ app.use(notFound);
 app.use(errorHandler);
 
 // Start server, default port is 3000
-app.listen(config.port, () => {
-	console.log(`Server is running on http://localhost:${config.port}`);
-});
+// if in test, don't start webserver
+if (process.env.NODE_ENV !== "test") {
+	app.listen(config.port, () => {
+		console.log(`Server is running on http://localhost:${config.port}`);
+	});
+}
 
 // Exposed to use in tests
 export default app;

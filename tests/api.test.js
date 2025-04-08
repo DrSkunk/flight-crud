@@ -28,26 +28,31 @@ describe("API tests", () => {
 			assert.strictEqual(res.body.flightNumber, testFlight.flightNumber);
 		});
 
-		it("should return 500 for missing required fields", async () => {
+		it("should return 400 for missing required fields", async () => {
 			const incompleteFlight = { flightNumber: "BB456" };
 			const res = await request(app)
 				.post("/api/v1/flights")
 				.send(incompleteFlight);
 
-			assert.strictEqual(res.statusCode, 500);
-			assert.ok(res.body.message.includes("validation failed"));
+			assert.strictEqual(res.statusCode, 400);
+			assert.ok(res.body.message.includes("Validation failed"));
+			assert.ok(res.body.message.includes("Departure airport is required"));
+			assert.ok(res.body.message.includes("Destination airport is required"));
+			assert.ok(res.body.message.includes("Departure time is required"));
+			assert.ok(res.body.message.includes("Arrival time is required"));
+			assert.ok(res.body.message.includes("Aircraft is required"));
 		});
 
-		it("should return 500 for duplicate flight number", async () => {
+		it("should return 400 for duplicate flight number", async () => {
 			await request(app).post("/api/v1/flights").send(testFlight); // Create the flight first
 			const res = await request(app).post("/api/v1/flights").send(testFlight);
 
-			assert.strictEqual(res.statusCode, 500);
-			assert.ok(res.body.message.includes("duplicate key error"));
+			assert.strictEqual(res.statusCode, 409);
+			assert.ok(res.body.message.includes("Flight number already exists"));
 		});
 
-		it("should return 500 for invalid timestamps", async () => {
-			const invalidTimestampsFlight = {
+		it("should return 400 for invalid timestamps", async () => {
+			const invalidDepartureTimestampsFlight = {
 				flightNumber: "CC789",
 				departure: "MUC",
 				destination: "YVR",
@@ -55,12 +60,55 @@ describe("API tests", () => {
 				arrivalTime: "2025-04-11T01:55:00Z",
 				aircraft: "Boeing 737",
 			};
-			const res = await request(app)
+			let res = await request(app)
 				.post("/api/v1/flights")
-				.send(invalidTimestampsFlight);
+				.send(invalidDepartureTimestampsFlight);
 
-			assert.strictEqual(res.statusCode, 500);
-			assert.ok(res.body.message.includes("validation failed"));
+			assert.strictEqual(res.statusCode, 400);
+			assert.ok(
+				res.body.message.includes(
+					"Departure time must be a valid ISO 8601 date",
+				),
+			);
+
+			const invalidArrivalTimestampsFlight = {
+				flightNumber: "CC790",
+				departure: "MUC",
+				destination: "YVR",
+				departureTime: "2025-04-10T15:45:00Z",
+				arrivalTime: "invalid-timestamp",
+				aircraft: "Boeing 737",
+			};
+			res = await request(app)
+				.post("/api/v1/flights")
+				.send(invalidArrivalTimestampsFlight);
+
+			assert.strictEqual(res.statusCode, 400);
+			assert.ok(
+				res.body.message.includes("Arrival time must be a valid ISO 8601 date"),
+			);
+
+			const invalidBothTimestampsFlight = {
+				flightNumber: "CC791",
+				departure: "MUC",
+				destination: "YVR",
+				departureTime: "invalid-timestamp",
+				arrivalTime: "invalid-timestamp",
+				aircraft: "Boeing 737",
+			};
+			res = await request(app)
+				.post("/api/v1/flights")
+				.send(invalidBothTimestampsFlight);
+
+			assert.strictEqual(res.statusCode, 400);
+			assert.ok(
+				res.body.message.includes(
+					"Departure time must be a valid ISO 8601 date",
+				),
+			);
+			assert.ok(
+				res.body.message.includes("Arrival time must be a valid ISO 8601 date"),
+			);
 		});
 
 		it("should return 400 when arrivalTime is before departureTime", async () => {
@@ -78,7 +126,7 @@ describe("API tests", () => {
 
 			assert.strictEqual(res.statusCode, 400);
 			assert.ok(
-				res.body.message.includes("arrivalTime must be after departureTime"),
+				res.body.message.includes("Arrival time must be after departure time"),
 			);
 		});
 	});
@@ -103,7 +151,7 @@ describe("API tests", () => {
 		});
 
 		it("should return 404 for a non-existent flight", async () => {
-			const res = await request(app).get("/api/v1/flights/INVALID123");
+			const res = await request(app).get("/api/v1/flights/XX000");
 
 			assert.strictEqual(res.statusCode, 404);
 			assert.strictEqual(res.body.message, "Flight not found");
@@ -112,7 +160,14 @@ describe("API tests", () => {
 
 	describe("Flights: Update flight", () => {
 		it("should update an existing flight", async () => {
-			const updatedData = { destination: "LAX" };
+			const updatedData = {
+				flightNumber: testFlight.flightNumber,
+				departure: testFlight.departure,
+				destination: "LAX",
+				departureTime: testFlight.departureTime,
+				arrivalTime: testFlight.arrivalTime,
+				aircraft: testFlight.aircraft,
+			};
 			const res = await request(app)
 				.patch(`/api/v1/flights/${testFlight.flightNumber}`)
 				.send(updatedData);
@@ -123,7 +178,7 @@ describe("API tests", () => {
 
 		it("should return 404 when updating a non-existent flight", async () => {
 			const res = await request(app)
-				.patch("/api/v1/flights/INVALID123")
+				.patch("/api/v1/flights/XX000")
 				.send({ destination: "LAX" });
 
 			assert.strictEqual(res.statusCode, 404);
@@ -143,7 +198,7 @@ describe("API tests", () => {
 		});
 
 		it("should return 404 when cancelling a non-existent flight", async () => {
-			const res = await request(app).delete("/api/v1/flights/INVALID123");
+			const res = await request(app).delete("/api/v1/flights/XX000");
 
 			assert.strictEqual(res.statusCode, 404);
 			assert.strictEqual(res.body.message, "Flight not found");

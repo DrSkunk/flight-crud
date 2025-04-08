@@ -1,4 +1,5 @@
 import { Flight } from "../models/Flight.js";
+import { AppError } from "../utils/AppError.js";
 
 // Get all flights
 export async function getFlights() {
@@ -11,7 +12,7 @@ export async function getFlightByFlightNumber(flightNumber) {
 	const flight = await Flight.findOne({ flightNumber }).select("-_id -__v");
 
 	if (!flight) {
-		const error = new Error("Flight not found");
+		const error = new AppError("Flight not found");
 		error.statusCode = 404;
 		throw error;
 	}
@@ -30,9 +31,9 @@ export async function createFlight(flightData) {
 		aircraft,
 	} = flightData;
 
-	if (new Date(arrivalTime) <= new Date(departureTime)) {
-		const error = new Error("arrivalTime must be after departureTime");
-		error.statusCode = 400; // Bad Request
+	const existingFlight = await Flight.findOne({ flightNumber });
+	if (existingFlight) {
+		const error = new AppError("Flight number already exists", 409);
 		throw error;
 	}
 
@@ -84,7 +85,7 @@ export async function updateFlight(flightNumber, flightData) {
 	).select("-_id -__v"); // Don't return __v and _id fields
 
 	if (!flight) {
-		const error = new Error("Flight not found");
+		const error = new AppError("Flight not found");
 		error.statusCode = 404; // Not Found
 		throw error;
 	}
@@ -103,7 +104,7 @@ export async function cancelFlight(flightNumber) {
 	).select("-_id -__v"); // Don't return __v and _id fields
 
 	if (!flight) {
-		const error = new Error("Flight not found");
+		const error = new AppError("Flight not found");
 		error.statusCode = 404; // Not Found
 		throw error;
 	}
