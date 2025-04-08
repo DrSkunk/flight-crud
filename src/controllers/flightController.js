@@ -12,9 +12,7 @@ export async function getFlightByFlightNumber(flightNumber) {
 	const flight = await Flight.findOne({ flightNumber }).select("-_id -__v");
 
 	if (!flight) {
-		const error = new AppError("Flight not found");
-		error.statusCode = 404;
-		throw error;
+		throw new AppError("Flight not found", 404);
 	}
 
 	return flight;
@@ -33,8 +31,7 @@ export async function createFlight(flightData) {
 
 	const existingFlight = await Flight.findOne({ flightNumber });
 	if (existingFlight) {
-		const error = new AppError("Flight number already exists", 409);
-		throw error;
+		throw new AppError("Flight number already exists", 409);
 	}
 
 	const flight = await Flight.create({
@@ -85,9 +82,7 @@ export async function updateFlight(flightNumber, flightData) {
 	).select("-_id -__v"); // Don't return __v and _id fields
 
 	if (!flight) {
-		const error = new AppError("Flight not found");
-		error.statusCode = 404; // Not Found
-		throw error;
+		throw new AppError("Flight not found", 404);
 	}
 
 	return flight;
@@ -104,9 +99,7 @@ export async function cancelFlight(flightNumber) {
 	).select("-_id -__v"); // Don't return __v and _id fields
 
 	if (!flight) {
-		const error = new AppError("Flight not found");
-		error.statusCode = 404; // Not Found
-		throw error;
+		throw new AppError("Flight not found", 404);
 	}
 
 	return flight;

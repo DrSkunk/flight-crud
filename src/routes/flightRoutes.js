@@ -49,7 +49,15 @@ function getFlightRoute(req, res, next) {
 function updateFlightRoute(req, res, next) {
 	const flightNumber = req.params.flightNumber;
 	const flightData = req.body;
-	updateFlight(flightNumber, flightData)
+
+	if (Object.keys(flightData).length === 0) {
+		return next(
+			new AppError("At least one field must be provided to update", 400),
+		);
+	}
+
+	getFlightByFlightNumber(flightNumber)
+		.then(() => updateFlight(flightNumber, flightData))
 		.then((updatedFlight) => {
 			if (updatedFlight) {
 				res.status(200).json(updatedFlight);
@@ -63,13 +71,11 @@ function updateFlightRoute(req, res, next) {
 // Delete flight
 function cancelFlightRoute(req, res, next) {
 	const flightNumber = req.params.flightNumber;
-	cancelFlight(flightNumber)
+
+	getFlightByFlightNumber(flightNumber)
+		.then(() => cancelFlight(flightNumber))
 		.then((updatedFlight) => {
-			if (updatedFlight) {
-				res.status(200).json(updatedFlight);
-			} else {
-				throw new AppError("Flight not found", 404);
-			}
+			res.status(200).json(updatedFlight);
 		})
 		.catch(next);
 }
@@ -87,8 +93,4 @@ flightRoutes
 		validateFlightData,
 		updateFlightRoute,
 	)
-	.delete(
-		flightNumberParamValidationRule,
-		validateFlightData,
-		cancelFlightRoute,
-	);
+	.delete(flightNumberParamValidationRule, cancelFlightRoute);

@@ -177,9 +177,17 @@ describe("API tests", () => {
 		});
 
 		it("should return 404 when updating a non-existent flight", async () => {
+			const updatedData = {
+				flightNumber: testFlight.flightNumber,
+				departure: testFlight.departure,
+				destination: "LAX",
+				departureTime: testFlight.departureTime,
+				arrivalTime: testFlight.arrivalTime,
+				aircraft: testFlight.aircraft,
+			};
 			const res = await request(app)
 				.patch("/api/v1/flights/XX000")
-				.send({ destination: "LAX" });
+				.send(updatedData);
 
 			assert.strictEqual(res.statusCode, 404);
 			assert.strictEqual(res.body.message, "Flight not found");
