@@ -8,12 +8,14 @@ A RESTful API for managing flight information with user authentication.
 - MongoDB (local or Atlas)
 - npm (v6 or higher)
 
+Application has been made with Node.js v22.14.0 and npm 10.9.2
+
 ## Installation
 
 Clone the repository
 
 ```
-git clone <repository-url>
+git clone https://github.com/DrSkunk/flight-crud
 cd flight-crud
 ```
 
@@ -58,6 +60,12 @@ Start the server:
 
 ```
 npm start
+```
+
+To run the application in development mode with hot reloading, use:
+
+```
+npm run dev
 ```
 
 The API will be available at: http://localhost:3000
