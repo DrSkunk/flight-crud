@@ -81,7 +81,7 @@ export const flightNumberParamValidationRule = [
 ];
 
 // Middleware to validate request
-export function validateFlightData(req, _res, next) {
+export function validateRequest(req, _res, next) {
 	const errors = validationResult(req);
 	if (errors.isEmpty()) {
 		return next();
@@ -96,3 +96,19 @@ export function validateFlightData(req, _res, next) {
 	);
 	return next(error);
 }
+
+// Validate auth
+export const authValidationRules = [
+	body("username")
+		.notEmpty()
+		.withMessage("Username is required")
+		.isString()
+		.withMessage("Username must be a string"),
+	body("password")
+		.notEmpty()
+		.withMessage("Password is required")
+		.isString()
+		.withMessage("Password must be a string")
+		.isLength({ min: 6 })
+		.withMessage("Password must be at least 6 characters"),
+];

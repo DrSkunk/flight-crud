@@ -11,6 +11,7 @@ import { config } from "./config/env.js";
 import { healthRoutes } from "./routes/healthRoutes.js";
 import { flightRoutes } from "./routes/flightRoutes.js";
 import { notFound, errorHandler } from "./middlewares/error.js";
+import { authRoutes } from "./routes/authRoutes.js";
 
 // __dirname and __filename for ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -30,6 +31,8 @@ app.use(express.json());
 // API routes
 // Basic health check route: http://localhost:3000/health
 app.use("/health", healthRoutes);
+// User routes: http://localhost:3000/api/v1/auth
+app.use(`${config.apiPrefix}/auth`, authRoutes);
 // Flight routes: http://localhost:3000/api/v1/flights
 app.use(`${config.apiPrefix}/flights`, flightRoutes);
 

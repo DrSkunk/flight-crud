@@ -7,7 +7,7 @@ import {
 	updateFlight,
 } from "../controllers/flightController.js";
 import { AppError } from "../utils/AppError.js";
-import { validateFlightData } from "../utils/validation.js";
+import { validateRequest } from "../utils/validation.js";
 import {
 	flightValidationRules,
 	flightNumberParamValidationRule,
@@ -83,14 +83,14 @@ function cancelFlightRoute(req, res, next) {
 flightRoutes
 	.route("/")
 	.get(getAllFlightsRoute)
-	.post(flightValidationRules, validateFlightData, createFlightRoute);
+	.post(flightValidationRules, validateRequest, createFlightRoute);
 
 flightRoutes
 	.route("/:flightNumber")
-	.get(flightNumberParamValidationRule, validateFlightData, getFlightRoute)
+	.get(flightNumberParamValidationRule, validateRequest, getFlightRoute)
 	.patch(
 		[...flightNumberParamValidationRule, ...flightValidationRules],
-		validateFlightData,
+		validateRequest,
 		updateFlightRoute,
 	)
 	.delete(flightNumberParamValidationRule, cancelFlightRoute);
