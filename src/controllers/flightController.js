@@ -43,9 +43,9 @@ export async function createFlight(flightData) {
 }
 
 // Update a flight
-export async function updateFlight(flightData) {
+export async function updateFlight(flightNumber, flightData) {
 	const {
-		flightNumber,
+		flightNumber: newFlightNumber,
 		departure,
 		destination,
 		departureTime,
@@ -56,6 +56,7 @@ export async function updateFlight(flightData) {
 	const flight = await Flight.findOneAndUpdate(
 		{ flightNumber },
 		{
+			flightNumber: newFlightNumber,
 			departure,
 			destination,
 			departureTime,
