@@ -2,13 +2,13 @@ import { Flight } from "../models/Flight.js";
 
 // Get all flights
 export async function getFlights() {
-	const flights = await Flight.find();
+	const flights = await Flight.find().select("-_id -__v");
 	return flights;
 }
 
 // Get flight by Flight number
 export async function getFlightByFlightNumber(flightNumber) {
-	const flight = await Flight.findOne({ flightNumber });
+	const flight = await Flight.findOne({ flightNumber }).select("-_id -__v");
 
 	if (!flight) {
 		throw new Error("Flight not found");
@@ -39,7 +39,14 @@ export async function createFlight(flightData) {
 	if (!flight) {
 		throw new Error("Flight creation failed");
 	}
-	return flight;
+	// Don't return __v and _id fields
+	return flight.toObject({
+		versionKey: false,
+		transform: (_, ret) => {
+			const { _id, ...rest } = ret;
+			Object.assign(ret, rest);
+		},
+	});
 }
 
 // Update a flight
@@ -66,7 +73,7 @@ export async function updateFlight(flightNumber, flightData) {
 		// new: true will return the updated document
 		// runValidators: true will run the validators on the updated document
 		{ new: true, runValidators: true },
-	);
+	).select("-_id -__v"); // Don't return __v and _id fields
 
 	if (!flight) {
 		throw new Error("Flight not found");
@@ -82,7 +89,7 @@ export async function cancelFlight(flightNumber) {
 		{ flightNumber },
 		{ status: "cancelled" },
 		{ new: true },
-	);
+	).select("-_id -__v"); // Don't return __v and _id fields
 
 	if (!flight) {
 		throw new Error("Flight not found");
