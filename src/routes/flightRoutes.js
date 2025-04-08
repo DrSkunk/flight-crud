@@ -10,8 +10,8 @@ import { protect } from "../middlewares/auth.js";
 import { AppError } from "../utils/AppError.js";
 import { validateRequest } from "../utils/validation.js";
 import {
-	flightValidationRules,
 	flightNumberParamValidationRule,
+	flightValidationRules,
 } from "../utils/validation.js";
 
 export const flightRoutes = express.Router();

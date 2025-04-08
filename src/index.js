@@ -8,10 +8,10 @@ import YAML from "yamljs";
 
 import { connectDB } from "./config/db.js";
 import { config } from "./config/env.js";
-import { healthRoutes } from "./routes/healthRoutes.js";
-import { flightRoutes } from "./routes/flightRoutes.js";
-import { notFound, errorHandler } from "./middlewares/error.js";
+import { errorHandler, notFound } from "./middlewares/error.js";
 import { authRoutes } from "./routes/authRoutes.js";
+import { flightRoutes } from "./routes/flightRoutes.js";
+import { healthRoutes } from "./routes/healthRoutes.js";
 
 // __dirname and __filename for ES modules
 const __filename = fileURLToPath(import.meta.url);

@@ -1,8 +1,8 @@
-import { describe, it, afterAll } from "vitest";
 import assert from "node:assert";
 import request from "supertest";
-import app from "../src/index.js";
+import { afterAll, describe, it } from "vitest";
 import { disconnectDB } from "../src/config/db.js";
+import app from "../src/index.js";
 
 const testUser = {
 	username: "testuser",

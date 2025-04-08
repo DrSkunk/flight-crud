@@ -1,9 +1,9 @@
-import { describe, it, afterAll, beforeAll } from "vitest";
 import assert from "node:assert";
 import request from "supertest";
+import { afterAll, beforeAll, describe, it } from "vitest";
+import { disconnectDB } from "../src/config/db.js";
 import app from "../src/index.js";
 import { User } from "../src/models/User.js";
-import { disconnectDB } from "../src/config/db.js";
 
 // Test flight data
 const testFlight = {
