@@ -1,0 +1,37 @@
+{
+  "name": "flight-crud",
+  "version": "1.0.0",
+  "author": "Sebastiaan Jansen",
+  "license": "ISC",
+  "main": "src/index.js",
+  "type": "module",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "start": "node --env-file=.env src/index.js",
+    "dev": "node --watch --env-file=.env src/index.js",
+    "test": "node --env-file=.env.test --test tests/",
+    "lint": "biome lint .",
+    "format": "biome format --write .",
+    "check": "biome check --write .",
+    "db:up": "docker compose up -d",
+    "db:down": "docker compose down",
+    "test:docker": "node --env-file=.env.test.docker --test tests/"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "express-validator": "^7.0.1",
+    "jsonwebtoken": "^9.0.0",
+    "mongoose": "^7.0.3",
+    "swagger-ui-express": "^4.6.2",
+    "yamljs": "^0.3.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.4",
+    "mongodb-memory-server": "^10.1.4",
+    "supertest": "^6.3.3"
+  }
+}
