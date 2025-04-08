@@ -8,19 +8,19 @@ import { config } from "./env.js";
  * Otherwise, connect to the specified MongoDB URI
  */
 export async function connectDB() {
-  let uri = config.mongodb.uri;
-  if (config.mongodb.uri === "memory") {
-    console.log(
-      "MongoDB URI is set to memory, creating in-memory MongoDB server"
-    );
-    const instance = await MongoMemoryServer.create();
-    uri = instance.getUri();
-  }
-  try {
-    console.log(`Connecting to MongoDB at ${uri}`);
-    await mongoose.connect(uri);
-  } catch (error) {
-    console.error(`Error: ${error.message}`);
-    process.exit(1);
-  }
+	let uri = config.mongodb.uri;
+	if (config.mongodb.uri === "memory") {
+		console.log(
+			"MongoDB URI is set to memory, creating in-memory MongoDB server",
+		);
+		const instance = await MongoMemoryServer.create();
+		uri = instance.getUri();
+	}
+	try {
+		console.log(`Connecting to MongoDB at ${uri}`);
+		await mongoose.connect(uri);
+	} catch (error) {
+		console.error(`Error: ${error.message}`);
+		process.exit(1);
+	}
 }
