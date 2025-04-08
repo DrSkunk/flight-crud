@@ -31,6 +31,11 @@ export async function authUser(username, password) {
 
 export async function registerUser(username, password) {
 	try {
+		const existingUser = await User.findOne({ username });
+		if (existingUser) {
+			throw new AppError("User already exists", 409);
+		}
+
 		const user = await User.create({
 			username,
 			password,

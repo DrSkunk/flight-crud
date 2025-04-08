@@ -6,7 +6,17 @@ info:
 servers:
   - url: http://localhost:3000/api/v1
     description: Local development server
+tags:
+  - name: flights
+    description: Flight management operations
+  - name: auth
+    description: Authentication operations
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
   schemas:
     Flight:
       type: object
@@ -32,10 +42,37 @@ components:
             - departed
             - arrived
             - cancelled
+    User:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+          format: password
+      required:
+        - username
+        - password
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+    AuthError:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
 paths:
   /flights:
     get:
       summary: Get all flights
+      tags:
+        - flights
+      security:
+        - bearerAuth: []
       responses:
         "200":
           description: A list of flights
@@ -43,6 +80,10 @@ paths:
           description: Internal server error
     post:
       summary: Create a new flight
+      tags:
+        - flights
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -59,6 +100,10 @@ paths:
   /flights/{flightNumber}:
     get:
       summary: Get a flight by flight number
+      tags:
+        - flights
+      security:
+        - bearerAuth: []
       parameters:
         - name: flightNumber
           in: path
@@ -74,6 +119,10 @@ paths:
           description: Internal server error
     patch:
       summary: Update a flight
+      tags:
+        - flights
+      security:
+        - bearerAuth: []
       parameters:
         - name: flightNumber
           in: path
@@ -97,6 +146,10 @@ paths:
           description: Internal server error
     delete:
       summary: Cancel a flight
+      tags:
+        - flights
+      security:
+        - bearerAuth: []
       parameters:
         - name: flightNumber
           in: path
@@ -110,3 +163,72 @@ paths:
           description: Flight not found
         "500":
           description: Internal server error
+  /auth/token:
+    post:
+      summary: Authenticate user and get token
+      tags:
+        - auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/User"
+      responses:
+        "200":
+          description: Authentication successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthError"
+        "500":
+          description: Server error
+  /auth/register:
+    post:
+      summary: Register a new user
+      tags:
+        - auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/User"
+      responses:
+        "201":
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  _id:
+                    type: string
+                  username:
+                    type: string
+                  createdAt:
+                    type: string
+                    format: date-time
+                  updatedAt:
+                    type: string
+                    format: date-time
+        "400":
+          description: Invalid user data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthError"
+        "409":
+          description: User already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthError"
+        "500":
+          description: Server error

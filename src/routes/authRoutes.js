@@ -19,7 +19,9 @@ function registerUserRoute(req, res, next) {
 
 	registerUser(username, password)
 		.then((user) => {
-			res.status(201).json(user);
+			res.status(201).json({
+				message: "User registered successfully",
+			});
 		})
 		.catch(next);
 }
