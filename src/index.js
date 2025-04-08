@@ -9,6 +9,7 @@ import YAML from "yamljs";
 import { connectDB } from "./config/db.js";
 import { config } from "./config/env.js";
 import { healthRoutes } from "./routes/healthRoutes.js";
+import { flightRoutes } from "./routes/flightRoutes.js";
 
 // __dirname and __filename for ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -28,18 +29,20 @@ app.use(express.json());
 // API routes
 // Basic health check route: http://localhost:3000/health
 app.use("/health", healthRoutes);
+// Flight routes: http://localhost:3000/api/v1/flights
+app.use(`${config.apiPrefix}/flights`, flightRoutes);
 
 // Swagger Documentation: http://localhost:3000/api/v1/docs
 const swaggerDocument = YAML.load(path.join(__dirname, "config/openapi.yaml"));
 app.use(
-  `${config.apiPrefix}/docs`,
-  swaggerUi.serve,
-  swaggerUi.setup(swaggerDocument)
+	`${config.apiPrefix}/docs`,
+	swaggerUi.serve,
+	swaggerUi.setup(swaggerDocument),
 );
 
 // Start server, default port is 3000
 app.listen(config.port, () => {
-  console.log(`Server is running on http://localhost:${config.port}`);
+	console.log(`Server is running on http://localhost:${config.port}`);
 });
 
 // Exposed to use in tests
