@@ -4,14 +4,12 @@ import request from "supertest";
 import app from "../src/index.js";
 import { disconnectDB } from "../src/config/db.js";
 
-// Test user data
 const testUser = {
 	username: "testuser",
 	password: "password123",
 };
 
 describe("Authentication API tests", () => {
-	// Cleanup after tests
 	afterAll(async () => {
 		await disconnectDB();
 	});

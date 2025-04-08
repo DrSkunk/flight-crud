@@ -23,6 +23,8 @@ const testUser = {
 
 describe("API tests", () => {
 	let authToken;
+	const invalidToken =
+		"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30";
 
 	// Setup before all tests - create user and get token
 	beforeAll(async () => {
@@ -167,6 +169,23 @@ describe("API tests", () => {
 				res.body.message.includes("Arrival time must be after departure time"),
 			);
 		});
+
+		it("should return 401 when invalid token is provided", async () => {
+			const res = await request(app)
+				.post("/api/v1/flights")
+				.set("Authorization", `Bearer ${invalidToken}`)
+				.send(testFlight);
+
+			assert.strictEqual(res.statusCode, 401);
+			assert.strictEqual(res.body.message, "Not authorized, token failed");
+		});
+
+		it("should return 401 when token is not provided", async () => {
+			const res = await request(app).post("/api/v1/flights").send(testFlight);
+
+			assert.strictEqual(res.statusCode, 401);
+			assert.strictEqual(res.body.message, "Not authorized, no token");
+		});
 	});
 
 	describe("Flights: Get all", () => {
@@ -177,6 +196,22 @@ describe("API tests", () => {
 
 			assert.strictEqual(res.statusCode, 200);
 			assert.ok(Array.isArray(res.body));
+		});
+
+		it("should return 401 when invalid token is provided", async () => {
+			const res = await request(app)
+				.get("/api/v1/flights")
+				.set("Authorization", `Bearer ${invalidToken}`);
+
+			assert.strictEqual(res.statusCode, 401);
+			assert.strictEqual(res.body.message, "Not authorized, token failed");
+		});
+
+		it("should return 401 when token is not provided", async () => {
+			const res = await request(app).get("/api/v1/flights");
+
+			assert.strictEqual(res.statusCode, 401);
+			assert.strictEqual(res.body.message, "Not authorized, no token");
 		});
 	});
 
@@ -197,6 +232,24 @@ describe("API tests", () => {
 
 			assert.strictEqual(res.statusCode, 404);
 			assert.strictEqual(res.body.message, "Flight not found");
+		});
+
+		it("should return 401 when invalid token is provided", async () => {
+			const res = await request(app)
+				.get(`/api/v1/flights/${testFlight.flightNumber}`)
+				.set("Authorization", `Bearer ${invalidToken}`);
+
+			assert.strictEqual(res.statusCode, 401);
+			assert.strictEqual(res.body.message, "Not authorized, token failed");
+		});
+
+		it("should return 401 when token is not provided", async () => {
+			const res = await request(app).get(
+				`/api/v1/flights/${testFlight.flightNumber}`,
+			);
+
+			assert.strictEqual(res.statusCode, 401);
+			assert.strictEqual(res.body.message, "Not authorized, no token");
 		});
 	});
 
@@ -236,6 +289,31 @@ describe("API tests", () => {
 			assert.strictEqual(res.statusCode, 404);
 			assert.strictEqual(res.body.message, "Flight not found");
 		});
+
+		it("should return 401 when invalid token is provided", async () => {
+			const updatedData = {
+				destination: "LAX",
+			};
+			const res = await request(app)
+				.patch(`/api/v1/flights/${testFlight.flightNumber}`)
+				.set("Authorization", `Bearer ${invalidToken}`)
+				.send(updatedData);
+
+			assert.strictEqual(res.statusCode, 401);
+			assert.strictEqual(res.body.message, "Not authorized, token failed");
+		});
+
+		it("should return 401 when token is not provided", async () => {
+			const updatedData = {
+				destination: "LAX",
+			};
+			const res = await request(app)
+				.patch(`/api/v1/flights/${testFlight.flightNumber}`)
+				.send(updatedData);
+
+			assert.strictEqual(res.statusCode, 401);
+			assert.strictEqual(res.body.message, "Not authorized, no token");
+		});
 	});
 
 	describe("Flights: Delete flight", () => {
@@ -257,12 +335,23 @@ describe("API tests", () => {
 			assert.strictEqual(res.statusCode, 404);
 			assert.strictEqual(res.body.message, "Flight not found");
 		});
-	});
 
-	it("should return 401 when no token is provided", async () => {
-		const res = await request(app).get("/api/v1/flights");
+		it("should return 401 when invalid token is provided", async () => {
+			const res = await request(app)
+				.delete(`/api/v1/flights/${testFlight.flightNumber}`)
+				.set("Authorization", `Bearer ${invalidToken}`);
 
-		assert.strictEqual(res.statusCode, 401);
-		assert.strictEqual(res.body.message, "Not authorized, no token");
+			assert.strictEqual(res.statusCode, 401);
+			assert.strictEqual(res.body.message, "Not authorized, token failed");
+		});
+
+		it("should return 401 when token is not provided", async () => {
+			const res = await request(app).delete(
+				`/api/v1/flights/${testFlight.flightNumber}`,
+			);
+
+			assert.strictEqual(res.statusCode, 401);
+			assert.strictEqual(res.body.message, "Not authorized, no token");
+		});
 	});
 });
