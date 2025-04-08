@@ -10,6 +10,7 @@ import { connectDB } from "./config/db.js";
 import { config } from "./config/env.js";
 import { healthRoutes } from "./routes/healthRoutes.js";
 import { flightRoutes } from "./routes/flightRoutes.js";
+import { notFound, errorHandler } from "./middlewares/error.js";
 
 // __dirname and __filename for ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -39,6 +40,10 @@ app.use(
 	swaggerUi.serve,
 	swaggerUi.setup(swaggerDocument),
 );
+
+// Error handling middleware
+app.use(notFound);
+app.use(errorHandler);
 
 // Start server, default port is 3000
 app.listen(config.port, () => {

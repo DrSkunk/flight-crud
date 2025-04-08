@@ -11,7 +11,9 @@ export async function getFlightByFlightNumber(flightNumber) {
 	const flight = await Flight.findOne({ flightNumber }).select("-_id -__v");
 
 	if (!flight) {
-		throw new Error("Flight not found");
+		const error = new Error("Flight not found");
+		error.statusCode = 404;
+		throw error;
 	}
 
 	return flight;
@@ -27,6 +29,12 @@ export async function createFlight(flightData) {
 		arrivalTime,
 		aircraft,
 	} = flightData;
+
+	if (new Date(arrivalTime) <= new Date(departureTime)) {
+		const error = new Error("arrivalTime must be after departureTime");
+		error.statusCode = 400; // Bad Request
+		throw error;
+	}
 
 	const flight = await Flight.create({
 		flightNumber,
@@ -76,7 +84,9 @@ export async function updateFlight(flightNumber, flightData) {
 	).select("-_id -__v"); // Don't return __v and _id fields
 
 	if (!flight) {
-		throw new Error("Flight not found");
+		const error = new Error("Flight not found");
+		error.statusCode = 404; // Not Found
+		throw error;
 	}
 
 	return flight;
@@ -85,6 +95,7 @@ export async function updateFlight(flightNumber, flightData) {
 // Cancel a  a flight
 // This does not delete the flight, but updates its status to 'cancelled'
 export async function cancelFlight(flightNumber) {
+	// Food for thought; should this throw an error when the flight is already cancelled?
 	const flight = await Flight.findOneAndUpdate(
 		{ flightNumber },
 		{ status: "cancelled" },
@@ -92,7 +103,9 @@ export async function cancelFlight(flightNumber) {
 	).select("-_id -__v"); // Don't return __v and _id fields
 
 	if (!flight) {
-		throw new Error("Flight not found");
+		const error = new Error("Flight not found");
+		error.statusCode = 404; // Not Found
+		throw error;
 	}
 
 	return flight;

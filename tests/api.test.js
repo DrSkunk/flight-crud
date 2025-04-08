@@ -63,7 +63,7 @@ describe("API tests", () => {
 			assert.ok(res.body.message.includes("validation failed"));
 		});
 
-		it("should return 500 when arrivalTime is before departureTime", async () => {
+		it("should return 400 when arrivalTime is before departureTime", async () => {
 			const invalidTimeOrderFlight = {
 				flightNumber: "DD101",
 				departure: "MUC",
@@ -76,7 +76,7 @@ describe("API tests", () => {
 				.post("/api/v1/flights")
 				.send(invalidTimeOrderFlight);
 
-			assert.strictEqual(res.statusCode, 500);
+			assert.strictEqual(res.statusCode, 400);
 			assert.ok(
 				res.body.message.includes("arrivalTime must be after departureTime"),
 			);
