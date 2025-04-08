@@ -1,8 +1,9 @@
-import { describe, it, afterAll } from "vitest";
+import { describe, it, afterAll, beforeAll } from "vitest";
 import assert from "node:assert";
-import mongoose from "mongoose";
 import request from "supertest";
 import app from "../src/index.js";
+import { User } from "../src/models/User.js";
+import { disconnectDB } from "../src/config/db.js";
 
 // Test flight data
 const testFlight = {
@@ -14,15 +15,41 @@ const testFlight = {
 	aircraft: "Boeing 737",
 };
 
+// Test user data for authentication
+const testUser = {
+	username: "testadmin",
+	password: "password123",
+};
+
 describe("API tests", () => {
+	let authToken;
+
+	// Setup before all tests - create user and get token
+	beforeAll(async () => {
+		// Clean any existing users
+		await User.deleteMany({});
+
+		// Register a test user
+		await request(app).post("/api/v1/auth/register").send(testUser);
+
+		// Get auth token
+		const loginRes = await request(app)
+			.post("/api/v1/auth/token")
+			.send(testUser);
+		authToken = loginRes.body.token;
+	});
+
 	// Cleanup after tests
 	afterAll(async () => {
-		await mongoose.connection.close();
+		await disconnectDB();
 	});
 
 	describe("Flights: Create", () => {
 		it("should create a new flight", async () => {
-			const res = await request(app).post("/api/v1/flights").send(testFlight);
+			const res = await request(app)
+				.post("/api/v1/flights")
+				.set("Authorization", `Bearer ${authToken}`)
+				.send(testFlight);
 
 			assert.strictEqual(res.statusCode, 201);
 			assert.strictEqual(res.body.flightNumber, testFlight.flightNumber);
@@ -32,6 +59,7 @@ describe("API tests", () => {
 			const incompleteFlight = { flightNumber: "BB456" };
 			const res = await request(app)
 				.post("/api/v1/flights")
+				.set("Authorization", `Bearer ${authToken}`)
 				.send(incompleteFlight);
 
 			assert.strictEqual(res.statusCode, 400);
@@ -44,8 +72,14 @@ describe("API tests", () => {
 		});
 
 		it("should return 400 for duplicate flight number", async () => {
-			await request(app).post("/api/v1/flights").send(testFlight); // Create the flight first
-			const res = await request(app).post("/api/v1/flights").send(testFlight);
+			await request(app)
+				.post("/api/v1/flights")
+				.set("Authorization", `Bearer ${authToken}`)
+				.send(testFlight); // Create the flight first
+			const res = await request(app)
+				.post("/api/v1/flights")
+				.set("Authorization", `Bearer ${authToken}`)
+				.send(testFlight);
 
 			assert.strictEqual(res.statusCode, 409);
 			assert.ok(res.body.message.includes("Flight number already exists"));
@@ -62,6 +96,7 @@ describe("API tests", () => {
 			};
 			let res = await request(app)
 				.post("/api/v1/flights")
+				.set("Authorization", `Bearer ${authToken}`)
 				.send(invalidDepartureTimestampsFlight);
 
 			assert.strictEqual(res.statusCode, 400);
@@ -81,6 +116,7 @@ describe("API tests", () => {
 			};
 			res = await request(app)
 				.post("/api/v1/flights")
+				.set("Authorization", `Bearer ${authToken}`)
 				.send(invalidArrivalTimestampsFlight);
 
 			assert.strictEqual(res.statusCode, 400);
@@ -98,6 +134,7 @@ describe("API tests", () => {
 			};
 			res = await request(app)
 				.post("/api/v1/flights")
+				.set("Authorization", `Bearer ${authToken}`)
 				.send(invalidBothTimestampsFlight);
 
 			assert.strictEqual(res.statusCode, 400);
@@ -122,6 +159,7 @@ describe("API tests", () => {
 			};
 			const res = await request(app)
 				.post("/api/v1/flights")
+				.set("Authorization", `Bearer ${authToken}`)
 				.send(invalidTimeOrderFlight);
 
 			assert.strictEqual(res.statusCode, 400);
@@ -133,7 +171,9 @@ describe("API tests", () => {
 
 	describe("Flights: Get all", () => {
 		it("should fetch all flights", async () => {
-			const res = await request(app).get("/api/v1/flights");
+			const res = await request(app)
+				.get("/api/v1/flights")
+				.set("Authorization", `Bearer ${authToken}`);
 
 			assert.strictEqual(res.statusCode, 200);
 			assert.ok(Array.isArray(res.body));
@@ -142,16 +182,18 @@ describe("API tests", () => {
 
 	describe("Flights: Get flight", () => {
 		it("should fetch a flight by flight number", async () => {
-			const res = await request(app).get(
-				`/api/v1/flights/${testFlight.flightNumber}`,
-			);
+			const res = await request(app)
+				.get(`/api/v1/flights/${testFlight.flightNumber}`)
+				.set("Authorization", `Bearer ${authToken}`);
 
 			assert.strictEqual(res.statusCode, 200);
 			assert.strictEqual(res.body.flightNumber, testFlight.flightNumber);
 		});
 
 		it("should return 404 for a non-existent flight", async () => {
-			const res = await request(app).get("/api/v1/flights/XX000");
+			const res = await request(app)
+				.get("/api/v1/flights/XX000")
+				.set("Authorization", `Bearer ${authToken}`);
 
 			assert.strictEqual(res.statusCode, 404);
 			assert.strictEqual(res.body.message, "Flight not found");
@@ -170,6 +212,7 @@ describe("API tests", () => {
 			};
 			const res = await request(app)
 				.patch(`/api/v1/flights/${testFlight.flightNumber}`)
+				.set("Authorization", `Bearer ${authToken}`)
 				.send(updatedData);
 
 			assert.strictEqual(res.statusCode, 200);
@@ -187,6 +230,7 @@ describe("API tests", () => {
 			};
 			const res = await request(app)
 				.patch("/api/v1/flights/XX000")
+				.set("Authorization", `Bearer ${authToken}`)
 				.send(updatedData);
 
 			assert.strictEqual(res.statusCode, 404);
@@ -196,9 +240,9 @@ describe("API tests", () => {
 
 	describe("Flights: Delete flight", () => {
 		it("should cancel an existing flight", async () => {
-			const res = await request(app).delete(
-				`/api/v1/flights/${testFlight.flightNumber}`,
-			);
+			const res = await request(app)
+				.delete(`/api/v1/flights/${testFlight.flightNumber}`)
+				.set("Authorization", `Bearer ${authToken}`);
 
 			assert.strictEqual(res.statusCode, 200);
 			assert.strictEqual(res.body.flightNumber, testFlight.flightNumber);
@@ -206,10 +250,19 @@ describe("API tests", () => {
 		});
 
 		it("should return 404 when cancelling a non-existent flight", async () => {
-			const res = await request(app).delete("/api/v1/flights/XX000");
+			const res = await request(app)
+				.delete("/api/v1/flights/XX000")
+				.set("Authorization", `Bearer ${authToken}`);
 
 			assert.strictEqual(res.statusCode, 404);
 			assert.strictEqual(res.body.message, "Flight not found");
 		});
+	});
+
+	it("should return 401 when no token is provided", async () => {
+		const res = await request(app).get("/api/v1/flights");
+
+		assert.strictEqual(res.statusCode, 401);
+		assert.strictEqual(res.body.message, "Not authorized, no token");
 	});
 });

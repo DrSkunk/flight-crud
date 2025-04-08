@@ -24,3 +24,15 @@ export async function connectDB() {
 		process.exit(1);
 	}
 }
+
+/**
+ * Disconnect from MongoDB
+ */
+export async function disconnectDB() {
+	try {
+		await mongoose.connection.close();
+		console.log("Disconnected from MongoDB");
+	} catch (error) {
+		console.error(`Error disconnecting from MongoDB: ${error.message}`);
+	}
+}

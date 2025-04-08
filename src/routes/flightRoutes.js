@@ -6,6 +6,7 @@ import {
 	getFlights,
 	updateFlight,
 } from "../controllers/flightController.js";
+import { protect } from "../middlewares/auth.js";
 import { AppError } from "../utils/AppError.js";
 import { validateRequest } from "../utils/validation.js";
 import {
@@ -14,6 +15,9 @@ import {
 } from "../utils/validation.js";
 
 export const flightRoutes = express.Router();
+
+// Ensure that the authentication token is checked for all routes
+flightRoutes.use(protect);
 
 function getAllFlightsRoute(_req, res, next) {
 	getFlights()
@@ -93,4 +97,4 @@ flightRoutes
 		validateRequest,
 		updateFlightRoute,
 	)
-	.delete(flightNumberParamValidationRule, cancelFlightRoute);
+	.delete(flightNumberParamValidationRule, validateRequest, cancelFlightRoute);
