@@ -138,13 +138,8 @@ describe("API tests", () => {
 			);
 
 			assert.strictEqual(res.statusCode, 200);
-			assert.strictEqual(res.body.message, "Flight deleted successfully");
-			// it should still be in the database
-			const checkRes = await request(app).get(
-				`/api/v1/flights/${testFlight.flightNumber}`,
-			);
-			assert.strictEqual(checkRes.statusCode, 200);
-			assert.strictEqual(checkRes.body.flightNumber, testFlight.flightNumber);
+			assert.strictEqual(res.body.flightNumber, testFlight.flightNumber);
+			assert.strictEqual(res.body.status, "cancelled");
 		});
 
 		it("should return 404 when cancelling a non-existent flight", async () => {
