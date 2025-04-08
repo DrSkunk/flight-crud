@@ -8,6 +8,7 @@ import YAML from "yamljs";
 
 import { connectDB } from "./config/db.js";
 import { config } from "./config/env.js";
+import { healthRoutes } from "./routes/healthRoutes.js";
 
 // __dirname and __filename for ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -24,6 +25,10 @@ app.use(cors());
 // Parse incoming requests with JSON payloads
 app.use(express.json());
 
+// API routes
+// Basic health check route: http://localhost:3000/health
+app.use("/health", healthRoutes);
+
 // Swagger Documentation: http://localhost:3000/api/v1/docs
 const swaggerDocument = YAML.load(path.join(__dirname, "config/openapi.yaml"));
 app.use(
@@ -35,12 +40,6 @@ app.use(
 // Start server, default port is 3000
 app.listen(config.port, () => {
   console.log(`Server is running on http://localhost:${config.port}`);
-  console.log(
-    `API documentation available at http://localhost:${config.port}${config.apiPrefix}}/docs`
-  );
-  console.log(
-    `Health check available at http://localhost:${config.port}/health`
-  );
 });
 
 // Exposed to use in tests
