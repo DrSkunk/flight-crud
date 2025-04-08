@@ -1,5 +1,5 @@
 import { body, param, validationResult } from "express-validator";
-import { AppError } from "./AppError";
+import { AppError } from "./AppError.js";
 
 //Flight validation rules for creating/updating flights
 export const flightValidationRules = [
