@@ -6,6 +6,7 @@ import {
 	getFlights,
 	updateFlight,
 } from "../controllers/flightController.js";
+import { AppError } from "../utils/AppError.js";
 
 export const flightRoutes = express.Router();
 
@@ -33,9 +34,7 @@ function getFlightRoute(req, res, next) {
 			if (flight) {
 				res.status(200).json(flight);
 			} else {
-				const error = new Error("Flight not found");
-				error.statusCode = 404;
-				throw error;
+				throw new AppError("Flight not found", 404);
 			}
 		})
 		.catch(next);
@@ -50,9 +49,7 @@ function updateFlightRoute(req, res, next) {
 			if (updatedFlight) {
 				res.status(200).json(updatedFlight);
 			} else {
-				const error = new Error("Flight not found");
-				error.statusCode = 404;
-				throw error;
+				throw new AppError("Flight not found", 404);
 			}
 		})
 		.catch(next);
@@ -62,13 +59,11 @@ function updateFlightRoute(req, res, next) {
 function cancelFlightRoute(req, res, next) {
 	const flightNumber = req.params.flightNumber;
 	cancelFlight(flightNumber)
-		.then((result) => {
-			if (result) {
-				res.status(200).json({ message: "Flight deleted successfully" });
+		.then((updatedFlight) => {
+			if (updatedFlight) {
+				res.status(200).json(updatedFlight);
 			} else {
-				const error = new Error("Flight not found");
-				error.statusCode = 404;
-				throw error;
+				throw new AppError("Flight not found", 404);
 			}
 		})
 		.catch(next);
